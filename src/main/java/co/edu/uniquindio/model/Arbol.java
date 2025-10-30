@@ -2,6 +2,9 @@ package co.edu.uniquindio.model;
 
 import co.edu.uniquindio.view.PanelArbol;
 
+import java.util.LinkedList;
+import java.util.Queue;
+
 public class Arbol<T extends Comparable<T>> {
     private Nodo<T> raiz;
     private int tamanio;
@@ -52,7 +55,7 @@ public class Arbol<T extends Comparable<T>> {
             }
 
             // 🔹 Caso 3: dos hijos
-            Nodo<T> sucesor = encontrarMinimo(nodo.getDerecha());
+            Nodo<T> sucesor = obtenerMinimo(nodo.getDerecha());
             nodo.setValor(sucesor.getValor());
             nodo.setDerecha(eliminarRecursivamente(nodo.getDerecha(), sucesor.getValor()));
             if (nodo.getDerecha() != null)
@@ -62,13 +65,7 @@ public class Arbol<T extends Comparable<T>> {
         return nodo;
     }
 
-    // 🔸 Encuentra el menor nodo de un subárbol
-    private Nodo<T> encontrarMinimo(Nodo<T> nodo) {
-        while (nodo.getIzquierda() != null) {
-            nodo = nodo.getIzquierda();
-        }
-        return nodo;
-    }
+
 
 
     // 🔹 Nueva versión animada
@@ -163,7 +160,7 @@ public class Arbol<T extends Comparable<T>> {
             }
 
             // Caso 3: dos hijos
-            Nodo<T> sucesor = encontrarMinimo(nodo.getDerecha());
+            Nodo<T> sucesor = obtenerMinimo(nodo.getDerecha());
             panel.resaltar(sucesor);
             panel.repaint();
             esperar(1000);
@@ -200,6 +197,32 @@ public class Arbol<T extends Comparable<T>> {
         recorrerInOrden(raiz.getDerecha());
     }
 
+    public void recorrerPreorden() {
+        preorden(raiz);
+        System.out.println();
+    }
+
+    private void preorden(Nodo<T> nodo) {
+        if (nodo != null) {
+            System.out.print(nodo.getValor() + " ");
+            preorden(nodo.getIzquierda());
+            preorden(nodo.getDerecha());
+        }
+    }
+
+    public void recorrerPostorden() {
+        postorden(raiz);
+        System.out.println();
+    }
+
+    private void postorden(Nodo<T> nodo) {
+        if (nodo != null) {
+            postorden(nodo.getIzquierda());
+            postorden(nodo.getDerecha());
+            System.out.print(nodo.getValor() + " ");
+        }
+    }
+
     public boolean buscar(Nodo<T> raiz, Nodo<T> buscando){
         return encontrarNodo(raiz, buscando);
     }
@@ -211,17 +234,106 @@ public class Arbol<T extends Comparable<T>> {
                 encontrarNodo(raiz.getIzquierda(), buscando) : encontrarNodo(raiz.getDerecha(), buscando);
     }
 
+    public int obtenerAltura() {
+        return altura(raiz);
+    }
+
+    private int altura(Nodo<T> nodo) {
+        if (nodo == null) return 0;
+        return 1 + Math.max(altura(nodo.getIzquierda()), altura(nodo.getDerecha()));
+    }
+
+    public int obtenerNivel(T peso) {
+        return nivel(raiz, peso, 1);
+    }
+
+    private int nivel(Nodo<T> nodo, T peso, int nivel) {
+        if (nodo == null) return 0;
+        if (nodo.getValor() == peso) {
+            return nivel;
+        }
+        int izq = nivel(nodo.getIzquierda(), peso, nivel + 1);
+        if (izq != 0) return izq;
+        return nivel(nodo.getDerecha(), peso, nivel + 1);
+    }
+
     public void eliminarNodo(Nodo<T> raiz, Nodo<T> buscando){
         if(raiz == null || !buscar(raiz, buscando)) System.out.println("No existe el nodo o es vacío el arbol");
 
+    }
 
+    public int contarHojas() {
+        return contarHojasRec(raiz);
+    }
+
+    private int contarHojasRec(Nodo<T> nodo) {
+        if (nodo == null) return 0;
+        if (nodo.getIzquierda() == null && nodo.getDerecha() == null) return 1;
+        return contarHojasRec(nodo.getIzquierda()) + contarHojasRec(nodo.getDerecha());
+    }
+
+    public T obtenerMenor() {
+        Nodo<T> actual = raiz;
+        while (actual.getIzquierda() != null)
+            actual = actual.getIzquierda();
+        return actual.getValor();
+    }
+
+    public T obtenerNodoMayor() {
+        Nodo<T> actual = raiz;
+        while (actual.getDerecha() != null)
+            actual = actual.getDerecha();
+        return actual.getValor();
+    }
+
+    public T obtenerNodoMenor() {
+        return obtenerMenor();
+    }
+
+    public void imprimirAmplitud() {
+        if (raiz == null) return;
+        Queue<Nodo> cola = new LinkedList<>();
+        cola.add(raiz);
+        while (!cola.isEmpty()) {
+            Nodo actual = cola.poll();
+            System.out.print(actual.getValor() + " ");
+            if (actual.getIzquierda() != null) cola.add(actual.getIzquierda());
+            if (actual.getDerecha() != null) cola.add(actual.getDerecha());
+        }
+        System.out.println();
+    }
+
+    private Nodo<T> obtenerMinimo(Nodo<T> nodo) {
+        while (nodo.getIzquierda() != null)
+            nodo = nodo.getIzquierda();
+        return nodo;
+    }
+
+    public boolean existeDato(T peso) {
+        return buscar(raiz, peso) != null;
+    }
+
+    private Nodo<T> buscar(Nodo<T> actual, T peso) {
+        if (actual == null || actual.getValor().equals(peso))
+            return actual;
+        if (peso.compareTo(actual.getValor()) < 0)
+            return buscar(actual.getIzquierda(), peso);
+        else
+            return buscar(actual.getDerecha(), peso);
+    }
+
+
+    public T obtenerPeso() {
+        return raiz == null ?  null : raiz.getValor();
+    }
+
+    public void borrarArbol() {
+        raiz = null;
     }
 
     public boolean esVacio(){
         return raiz == null;
     }
-
-
 
     public Nodo<T> getRaiz() {
         return raiz;
